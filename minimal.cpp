@@ -39,6 +39,10 @@
     #include "/Users/wegesdal/Documents/wxWidgets-3.1.4/samples/sample.xpm"
 #endif
 
+#include "csv2.hpp"
+
+#include "wx/grid.h"
+
 // ----------------------------------------------------------------------------
 // private classes
 // ----------------------------------------------------------------------------
@@ -66,6 +70,7 @@ public:
     // event handlers (these functions should _not_ be virtual)
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+    void OnImportCSV(wxCommandEvent& event);
 
 private:
     // any class wishing to process wxWidgets events must use this macro
@@ -85,7 +90,8 @@ enum
     // it is important for the id corresponding to the "About" command to have
     // this standard value as otherwise it won't be handled properly under Mac
     // (where it is special and put into the "Apple" menu)
-    Minimal_About = wxID_ABOUT
+    Minimal_About = wxID_ABOUT,
+    Minimal_ImportCSV = wxID_OPEN
 };
 
 // ----------------------------------------------------------------------------
@@ -98,6 +104,7 @@ enum
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
     EVT_MENU(Minimal_About, MyFrame::OnAbout)
+    EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
 wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
@@ -156,6 +163,7 @@ MyFrame::MyFrame(const wxString& title)
     helpMenu->Append(Minimal_About, "&About\tF1", "Show about dialog");
 
     fileMenu->Append(Minimal_Quit, "E&xit\tAlt-X", "Quit this program");
+    fileMenu->Append(Minimal_ImportCSV, "Import\tAlt-I", "Import CSV");
 
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
@@ -203,4 +211,74 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
                  "About wxWidgets minimal sample",
                  wxOK | wxICON_INFORMATION,
                  this);
+}
+
+void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
+{
+    std::cout << "import";
+    wxFileDialog
+        openFileDialog(this, _("Open CSV file"), "", "",
+                       "CSV files (*.csv)|*.csv", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return;     // the user changed idea...
+    
+    std::cout << std::string(openFileDialog.GetPath());
+    
+    csv2::Reader<csv2::delimiter<','>,
+    csv2::quote_character<'"'>,
+    csv2::first_row_is_header<true>,
+    csv2::trim_policy::trim_whitespace> csv;
+    
+    if (csv.mmap(std::string(openFileDialog.GetPath()))) {
+       
+      const auto header = csv.header();
+
+      size_t rows{0}, cells{0};
+      for (const auto row: csv) {
+        rows += 1;
+        for (const auto cell: row) {
+          cells += 1;
+        }
+      }
+    
+    // Create a wxGrid object
+    auto grid = new wxGrid( this,
+                        -1,
+                        wxPoint( 0, 0 ),
+                        wxSize( 400, 300 ) );
+        
+    grid->CreateGrid( int(rows), int(cells/rows) );
+    // We can set the sizes of individual rows and columns
+    // in pixels
+    grid->SetRowSize( 0, 60 );
+    grid->SetColSize( 0, 120 );
+        int y = 0;
+        for (const auto row: csv) {
+          int x = 0;
+          for (const auto cell: row) {
+            // Do something with cell value
+            std::string value;
+            cell.read_value(value);
+            std::cout << value;
+            grid->SetCellValue(y, x, value);
+            x += 1;
+          }
+          y += 1;
+        }
+//    // And set grid cell contents as strings
+//    grid->SetCellValue( 0, 0, "wxGrid is good" );
+//    // We can specify that some cells are read->only
+//    grid->SetCellValue( 0, 3, "This is read->only" );
+//    grid->SetReadOnly( 0, 3 );
+//    // Colours can be specified for grid cell contents
+//    grid->SetCellValue(3, 3, "green on grey");
+//    grid->SetCellTextColour(3, 3, *wxGREEN);
+//    grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
+//    // We can specify the some cells will store numeric
+//    // values rather than strings. Here we set grid column 5
+//    // to hold floating point values displayed with width of 6
+//    // and precision of 2
+//    grid->SetColFormatFloat(5, 6, 2);
+//    grid->SetCellValue(0, 6, "3.1415");
+    }
 }

@@ -22,6 +22,7 @@
 		F300CDD124E8EE680096DCA9 /* minimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = minimal.cpp; sourceTree = "<group>"; };
 		F300CDD624E8F0DE0096DCA9 /* Static.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Static.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3A1EAD924E9BB22005A8093 /* wx_osx_cocoa_static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = wx_osx_cocoa_static.a; path = "../Library/Developer/Xcode/DerivedData/wxcocoa-dxxoiwswnxpctfdmvugzfpogaaah/Build/Products/Debug/wx_osx_cocoa_static.a"; sourceTree = "<group>"; };
+		F3A1EADB24E9C45E005A8093 /* csv2.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = csv2.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +47,7 @@
 				F300CDD124E8EE680096DCA9 /* minimal.cpp */,
 				F300CDD324E8F0A30096DCA9 /* Frameworks */,
 				F300CDD624E8F0DE0096DCA9 /* Static.app */,
+				F3A1EADB24E9C45E005A8093 /* csv2.hpp */,
 			);
 			sourceTree = "<group>";
 		};
@@ -252,7 +254,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "-";
@@ -295,7 +297,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "-";
