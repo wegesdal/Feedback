@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:WXWidgetTest.xcodeproj">
+      location = "self:/Users/wegesdal/WXWidgetTest/Static.xcodeproj">
    </FileRef>
 </Workspace>

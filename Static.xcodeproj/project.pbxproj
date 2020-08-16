@@ -3,25 +3,25 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F300CDBA24E8EDE60096DCA9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F300CDB924E8EDE60096DCA9 /* AppDelegate.m */; };
-		F300CDBC24E8EDED0096DCA9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F300CDBB24E8EDED0096DCA9 /* Assets.xcassets */; };
-		F300CDBF24E8EDED0096DCA9 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = F300CDBD24E8EDED0096DCA9 /* MainMenu.xib */; };
-		F300CDC224E8EDED0096DCA9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F300CDC124E8EDED0096DCA9 /* main.m */; };
+		F300CDCD24E8EE620096DCA9 /* wxdebug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F300CDC924E8EE610096DCA9 /* wxdebug.xcconfig */; };
+		F300CDCE24E8EE620096DCA9 /* wxrelease.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F300CDCA24E8EE610096DCA9 /* wxrelease.xcconfig */; };
+		F300CDCF24E8EE620096DCA9 /* wxcocoa.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = F300CDCB24E8EE620096DCA9 /* wxcocoa.xcconfig */; };
+		F300CDD224E8EE680096DCA9 /* minimal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F300CDD124E8EE680096DCA9 /* minimal.cpp */; };
+		F3A1EADA24E9BB22005A8093 /* wx_osx_cocoa_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F3A1EAD924E9BB22005A8093 /* wx_osx_cocoa_static.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F300CDB524E8EDE60096DCA9 /* WXWidgetTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WXWidgetTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F300CDB824E8EDE60096DCA9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		F300CDB924E8EDE60096DCA9 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		F300CDBB24E8EDED0096DCA9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F300CDBE24E8EDED0096DCA9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		F300CDC024E8EDED0096DCA9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F300CDC124E8EDED0096DCA9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		F300CDC324E8EDED0096DCA9 /* WXWidgetTest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WXWidgetTest.entitlements; sourceTree = "<group>"; };
+		F300CDC924E8EE610096DCA9 /* wxdebug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = wxdebug.xcconfig; sourceTree = "<group>"; };
+		F300CDCA24E8EE610096DCA9 /* wxrelease.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = wxrelease.xcconfig; sourceTree = "<group>"; };
+		F300CDCB24E8EE620096DCA9 /* wxcocoa.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = wxcocoa.xcconfig; sourceTree = "<group>"; };
+		F300CDCC24E8EE620096DCA9 /* Info_cocoa.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info_cocoa.plist; sourceTree = "<group>"; };
+		F300CDD124E8EE680096DCA9 /* minimal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = minimal.cpp; sourceTree = "<group>"; };
+		F300CDD624E8F0DE0096DCA9 /* Static.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Static.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F3A1EAD924E9BB22005A8093 /* wx_osx_cocoa_static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = wx_osx_cocoa_static.a; path = "../Library/Developer/Xcode/DerivedData/wxcocoa-dxxoiwswnxpctfdmvugzfpogaaah/Build/Products/Debug/wx_osx_cocoa_static.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3A1EADA24E9BB22005A8093 /* wx_osx_cocoa_static.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,39 +39,30 @@
 		F300CDAC24E8EDE60096DCA9 = {
 			isa = PBXGroup;
 			children = (
-				F300CDB724E8EDE60096DCA9 /* WXWidgetTest */,
-				F300CDB624E8EDE60096DCA9 /* Products */,
+				F300CDCB24E8EE620096DCA9 /* wxcocoa.xcconfig */,
+				F300CDC924E8EE610096DCA9 /* wxdebug.xcconfig */,
+				F300CDCA24E8EE610096DCA9 /* wxrelease.xcconfig */,
+				F300CDCC24E8EE620096DCA9 /* Info_cocoa.plist */,
+				F300CDD124E8EE680096DCA9 /* minimal.cpp */,
+				F300CDD324E8F0A30096DCA9 /* Frameworks */,
+				F300CDD624E8F0DE0096DCA9 /* Static.app */,
 			);
 			sourceTree = "<group>";
 		};
-		F300CDB624E8EDE60096DCA9 /* Products */ = {
+		F300CDD324E8F0A30096DCA9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F300CDB524E8EDE60096DCA9 /* WXWidgetTest.app */,
+				F3A1EAD924E9BB22005A8093 /* wx_osx_cocoa_static.a */,
 			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		F300CDB724E8EDE60096DCA9 /* WXWidgetTest */ = {
-			isa = PBXGroup;
-			children = (
-				F300CDB824E8EDE60096DCA9 /* AppDelegate.h */,
-				F300CDB924E8EDE60096DCA9 /* AppDelegate.m */,
-				F300CDBB24E8EDED0096DCA9 /* Assets.xcassets */,
-				F300CDBD24E8EDED0096DCA9 /* MainMenu.xib */,
-				F300CDC024E8EDED0096DCA9 /* Info.plist */,
-				F300CDC124E8EDED0096DCA9 /* main.m */,
-				F300CDC324E8EDED0096DCA9 /* WXWidgetTest.entitlements */,
-			);
-			path = WXWidgetTest;
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F300CDB424E8EDE60096DCA9 /* WXWidgetTest */ = {
+		F300CDB424E8EDE60096DCA9 /* Static */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F300CDC624E8EDED0096DCA9 /* Build configuration list for PBXNativeTarget "WXWidgetTest" */;
+			buildConfigurationList = F300CDC624E8EDED0096DCA9 /* Build configuration list for PBXNativeTarget "Static" */;
 			buildPhases = (
 				F300CDB124E8EDE60096DCA9 /* Sources */,
 				F300CDB224E8EDE60096DCA9 /* Frameworks */,
@@ -80,9 +72,9 @@
 			);
 			dependencies = (
 			);
-			name = WXWidgetTest;
+			name = Static;
 			productName = WXWidgetTest;
-			productReference = F300CDB524E8EDE60096DCA9 /* WXWidgetTest.app */;
+			productReference = F300CDD624E8F0DE0096DCA9 /* Static.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -99,8 +91,8 @@
 					};
 				};
 			};
-			buildConfigurationList = F300CDB024E8EDE60096DCA9 /* Build configuration list for PBXProject "WXWidgetTest" */;
-			compatibilityVersion = "Xcode 9.3";
+			buildConfigurationList = F300CDB024E8EDE60096DCA9 /* Build configuration list for PBXProject "Static" */;
+			compatibilityVersion = "Xcode 11.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -108,11 +100,11 @@
 				Base,
 			);
 			mainGroup = F300CDAC24E8EDE60096DCA9;
-			productRefGroup = F300CDB624E8EDE60096DCA9 /* Products */;
+			productRefGroup = F300CDAC24E8EDE60096DCA9;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F300CDB424E8EDE60096DCA9 /* WXWidgetTest */,
+				F300CDB424E8EDE60096DCA9 /* Static */,
 			);
 		};
 /* End PBXProject section */
@@ -122,8 +114,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F300CDBC24E8EDED0096DCA9 /* Assets.xcassets in Resources */,
-				F300CDBF24E8EDED0096DCA9 /* MainMenu.xib in Resources */,
+				F300CDCD24E8EE620096DCA9 /* wxdebug.xcconfig in Resources */,
+				F300CDCE24E8EE620096DCA9 /* wxrelease.xcconfig in Resources */,
+				F300CDCF24E8EE620096DCA9 /* wxcocoa.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,33 +127,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F300CDC224E8EDED0096DCA9 /* main.m in Sources */,
-				F300CDBA24E8EDE60096DCA9 /* AppDelegate.m in Sources */,
+				F300CDD224E8EE680096DCA9 /* minimal.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-		F300CDBD24E8EDED0096DCA9 /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F300CDBE24E8EDED0096DCA9 /* Base */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		F300CDC424E8EDED0096DCA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F300CDC924E8EE610096DCA9 /* wxdebug.xcconfig */;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "libstdc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -213,12 +195,13 @@
 		};
 		F300CDC524E8EDED0096DCA9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F300CDCA24E8EE610096DCA9 /* wxrelease.xcconfig */;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "libstdc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -264,46 +247,94 @@
 		};
 		F300CDC724E8EDED0096DCA9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F300CDCB24E8EE620096DCA9 /* wxcocoa.xcconfig */;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = WXWidgetTest/WXWidgetTest.entitlements;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8F3UBDAU5D;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = WXWidgetTest/Info.plist;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
+				GCC_PREFIX_HEADER = "$(WXROOT)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(WX_PREPROCESSOR_DEFINITIONS)";
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(WXROOT)/build/osx/setup/cocoa/include",
+					"$(WXROOT)/include",
+					"/Users/wegesdal/Documents/wxwidgets-3.0.0/samples/minimal",
+					"$(WXROOT)/build/osx",
+				);
+				INFOPLIST_FILE = Info_cocoa.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(OTHER_LDFLAGS)",
+					"-lz",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = MoonPong.WXWidgetTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(WXROOT)/build/osx";
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXROOT = "/Users/wegesdal/Documents/wxWidgets-3.1.4";
+				WX_PREPROCESSOR_DEFINITIONS = "WXBUILDING $(WXPLATFORM) __WX__ _FILE_OFFSET_BITS=64 _LARGE_FILES MACOS_CLASSIC __WXMAC_XCODE__=1 SCI_LEXER NO_CXX11_REGEX WX_PRECOMP=1 wxUSE_UNICODE_UTF8=0 wxUSE_UNICODE_WCHAR=1";
 			};
 			name = Debug;
 		};
 		F300CDC824E8EDED0096DCA9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F300CDCB24E8EE620096DCA9 /* wxcocoa.xcconfig */;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = WXWidgetTest/WXWidgetTest.entitlements;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "libc++";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 8F3UBDAU5D;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = WXWidgetTest/Info.plist;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
+				GCC_PREFIX_HEADER = "$(WXROOT)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(WX_PREPROCESSOR_DEFINITIONS)";
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(WXROOT)/build/osx/setup/cocoa/include",
+					"$(WXROOT)/include",
+					"/Users/wegesdal/Documents/wxwidgets-3.0.0/samples/minimal",
+					"$(WXROOT)/build/osx",
+				);
+				INFOPLIST_FILE = Info_cocoa.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"$(OTHER_LDFLAGS)",
+					"-lz",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = MoonPong.WXWidgetTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(WXROOT)/build/osx";
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXROOT = "/Users/wegesdal/Documents/wxWidgets-3.1.4";
+				WX_PREPROCESSOR_DEFINITIONS = "WXBUILDING $(WXPLATFORM) __WX__ _FILE_OFFSET_BITS=64 _LARGE_FILES MACOS_CLASSIC __WXMAC_XCODE__=1 SCI_LEXER NO_CXX11_REGEX WX_PRECOMP=1 wxUSE_UNICODE_UTF8=0 wxUSE_UNICODE_WCHAR=1";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F300CDB024E8EDE60096DCA9 /* Build configuration list for PBXProject "WXWidgetTest" */ = {
+		F300CDB024E8EDE60096DCA9 /* Build configuration list for PBXProject "Static" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F300CDC424E8EDED0096DCA9 /* Debug */,
@@ -312,7 +343,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F300CDC624E8EDED0096DCA9 /* Build configuration list for PBXNativeTarget "WXWidgetTest" */ = {
+		F300CDC624E8EDED0096DCA9 /* Build configuration list for PBXNativeTarget "Static" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F300CDC724E8EDED0096DCA9 /* Debug */,
