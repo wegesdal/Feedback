@@ -60,22 +60,38 @@ public:
     virtual bool OnInit() wxOVERRIDE;
 };
 
+class BasicFrame : public wxFrame
+{
+public:
+    BasicFrame( wxFrame * parent,
+                const wxString& title,
+                int xpos,
+                int ypos,
+                int width,
+                int height
+    );
+};
+
 // Define a new frame type: this is going to be our main frame
 class MyFrame : public wxFrame
 {
 public:
     // ctor(s)
     MyFrame(const wxString& title);
-
+    
+    BasicFrame * rubric;
+    
     // event handlers (these functions should _not_ be virtual)
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnImportCSV(wxCommandEvent& event);
+    void OnSelectCell(wxGridEvent& ev);
 
 private:
     // any class wishing to process wxWidgets events must use this macro
     wxDECLARE_EVENT_TABLE();
 };
+
 
 // ----------------------------------------------------------------------------
 // constants
@@ -105,7 +121,11 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
     EVT_MENU(Minimal_About, MyFrame::OnAbout)
     EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
+    EVT_GRID_SELECT_CELL(MyFrame::OnSelectCell)
+
 wxEND_EVENT_TABLE()
+
+
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a
@@ -131,11 +151,14 @@ bool MyApp::OnInit()
         return false;
 
     // create the main application window
-    MyFrame *frame = new MyFrame("Minimal wxWidgets App");
+    MyFrame *main = new MyFrame("Feedback");
+
 
     // and show it (the frames, unlike simple controls, are not shown when
     // created initially)
-    frame->Show(true);
+    main->Show(true);
+    
+    SetTopWindow(main);
 
     // success: wxApp::OnRun() will be called which will enter the main message
     // loop and the application will run. If we returned false here, the
@@ -147,10 +170,18 @@ bool MyApp::OnInit()
 // main frame
 // ----------------------------------------------------------------------------
 
+BasicFrame::BasicFrame( wxFrame * parent, const wxString& title,
+                        int xpos, int ypos, int width, int height )
+: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height) ){}
+
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(NULL, wxID_ANY, title)
+       : wxFrame((wxFrame *) NULL, -1, title)
 {
+    
+    rubric = new BasicFrame(this, "Rubric", 450, 50, 450, 300);
+    rubric->Show(true);
+    
     // set the frame icon
     SetIcon(wxICON(sample));
 
@@ -184,12 +215,13 @@ MyFrame::MyFrame(const wxString& title)
 #if wxUSE_STATUSBAR
     // create a status bar just for fun (by default with 1 pane only)
     CreateStatusBar(2);
-    SetStatusText("Welcome to wxWidgets!");
+    SetStatusText("Welcome to Feedback!");
 #endif // wxUSE_STATUSBAR
+    
 }
 
-
 // event handlers
+
 
 void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
@@ -213,7 +245,36 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
                  this);
 }
 
+
+void MyFrame::OnSelectCell(wxGridEvent& ev) {
+    wxString logBuf;
+    if ( ev.Selecting() )
+        logBuf << _T("Selected ");
+    else
+        logBuf << _T("Deselected ");
+    logBuf << _T("cell at row ") << ev.GetRow()
+           << _T(" col ") << ev.GetCol()
+           << _T(" ( ControlDown: ")<< (ev.ControlDown() ? 'T':'F')
+           << _T(", ShiftDown: ")<< (ev.ShiftDown() ? 'T':'F')
+           << _T(", AltDown: ")<< (ev.AltDown() ? 'T':'F')
+           << _T(", MetaDown: ")<< (ev.MetaDown() ? 'T':'F') << _T(" )");
+
+    //Indicate whether this column was moved
+    if ( ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() ) != ev.GetCol() )
+        logBuf << _T(" *** Column moved, current position: ") << ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() );
+
+    wxLogMessage( wxT("%s"), logBuf.c_str() );
+
+    if (rubric != NULL) {
+    rubric->SetTitle("Foo");
+    }
+    // you must call Skip() if you want the default processing
+    // to occur in wxGrid
+    ev.Skip();
+}
+
 void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
+
 {
     std::cout << "import";
     wxFileDialog
@@ -250,14 +311,15 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
     grid->CreateGrid( int(rows), int(cells/rows) );
     // We can set the sizes of individual rows and columns
     // in pixels
-    grid->SetRowSize( 0, 60 );
-    grid->SetColSize( 0, 120 );
+//    grid->SetRowSize( 0, 60 );
+//    grid->SetColSize( 0, 120 );
         int y = 0;
         for (const auto row: csv) {
           int x = 0;
           for (const auto cell: row) {
             // Do something with cell value
             std::string value;
+            
             cell.read_value(value);
             std::cout << value;
             grid->SetCellValue(y, x, value);
@@ -280,5 +342,11 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
 //    // and precision of 2
 //    grid->SetColFormatFloat(5, 6, 2);
 //    grid->SetCellValue(0, 6, "3.1415");
+        
     }
+    
 }
+
+
+
+
