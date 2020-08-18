@@ -15,18 +15,18 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
+#include <filesystem>
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
-    #pragma hdrstop
+#pragma hdrstop
 #endif
 
 // for all others, include the necessary headers (this file is usually all you
 // need because it includes almost all "standard" wxWidgets headers)
 #ifndef WX_PRECOMP
-    #include "wx/wx.h"
+#include "wx/wx.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -36,7 +36,7 @@
 // the application icon (under Windows it is in resources and even
 // though we could still include the XPM here it would be unused)
 #ifndef wxHAS_IMAGES_IN_RESOURCES
-    #include "/Users/wegesdal/Documents/wxWidgets-3.1.4/samples/sample.xpm"
+#include "/Users/wegesdal/Documents/wxWidgets-3.1.4/samples/sample.xpm"
 #endif
 
 #include "csv2.hpp"
@@ -53,24 +53,42 @@ class MyApp : public wxApp
 public:
     // override base class virtuals
     // ----------------------------
-
+    
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
     virtual bool OnInit() wxOVERRIDE;
 };
 
+class MyFrame;
+
 class BasicFrame : public wxFrame
 {
 public:
     BasicFrame( wxFrame * parent,
-                const wxString& title,
-                int xpos,
-                int ypos,
-                int width,
-                int height
-    );
+               const wxString& title,
+               int xpos,
+               int ypos,
+               int width,
+               int height
+               );
+    
+    wxFrame * p;
+    
+    std::vector<std::string> criterion_names;
+    
+    // hide
+    void HideBasicFrame(wxCloseEvent& event);
+    void OnSelectCell(wxGridEvent& ev);
+    void Import(std::string path);
+    
+    
+    
+private:
+    // any class wishing to process wxWidgets events must use this macro
+    wxDECLARE_EVENT_TABLE();
 };
+
 
 // Define a new frame type: this is going to be our main frame
 class MyFrame : public wxFrame
@@ -81,12 +99,21 @@ public:
     
     BasicFrame * rubric;
     
+    std::string filepath;
+    wxGrid * grid;
+    
+    std::vector<std::string> rubric_names;
+    
     // event handlers (these functions should _not_ be virtual)
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnImportCSV(wxCommandEvent& event);
+    void OnSaveCSV(wxCommandEvent& event);
+    void ShowRubric(wxCommandEvent& event);
+    void ImportRubric(wxCommandEvent& event);
     void OnSelectCell(wxGridEvent& ev);
-
+    
+    
 private:
     // any class wishing to process wxWidgets events must use this macro
     wxDECLARE_EVENT_TABLE();
@@ -102,12 +129,15 @@ enum
 {
     // menu items
     Minimal_Quit = wxID_EXIT,
-
+    
     // it is important for the id corresponding to the "About" command to have
     // this standard value as otherwise it won't be handled properly under Mac
     // (where it is special and put into the "Apple" menu)
     Minimal_About = wxID_ABOUT,
-    Minimal_ImportCSV = wxID_OPEN
+    Minimal_ImportCSV = wxID_OPEN,
+    Minimal_SaveCSV = wxID_SAVE,
+    Minimal_ShowRubric = wxID_FILE1,
+    Minimal_ImportRubric = wxID_FILE2
 };
 
 // ----------------------------------------------------------------------------
@@ -118,14 +148,19 @@ enum
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-    EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
-    EVT_MENU(Minimal_About, MyFrame::OnAbout)
-    EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
-    EVT_GRID_SELECT_CELL(MyFrame::OnSelectCell)
-
+EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
+EVT_MENU(Minimal_About, MyFrame::OnAbout)
+EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
+EVT_MENU(Minimal_SaveCSV, MyFrame::OnSaveCSV)
+EVT_MENU(Minimal_ShowRubric, MyFrame::ShowRubric)
+EVT_MENU(Minimal_ImportRubric, MyFrame::ImportRubric)
+EVT_GRID_SELECT_CELL(MyFrame::OnSelectCell)
 wxEND_EVENT_TABLE()
 
-
+wxBEGIN_EVENT_TABLE(BasicFrame, wxFrame)
+EVT_CLOSE(BasicFrame::HideBasicFrame)
+EVT_GRID_SELECT_CELL(BasicFrame::OnSelectCell)
+wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a
@@ -145,21 +180,22 @@ wxIMPLEMENT_APP(MyApp);
 // 'Main program' equivalent: the program execution "starts" here
 bool MyApp::OnInit()
 {
+    std::cout<<"init"<<std::endl;
     // call the base class initialization method, currently it only parses a
     // few common command-line options but it could be do more in the future
     if ( !wxApp::OnInit() )
         return false;
-
+    
     // create the main application window
-    MyFrame *main = new MyFrame("Feedback");
-
-
+    MyFrame *main = new MyFrame("Scores");
+    
+    
     // and show it (the frames, unlike simple controls, are not shown when
     // created initially)
     main->Show(true);
     
     SetTopWindow(main);
-
+    
     // success: wxApp::OnRun() will be called which will enter the main message
     // loop and the application will run. If we returned false here, the
     // application would exit immediately.
@@ -170,13 +206,72 @@ bool MyApp::OnInit()
 // main frame
 // ----------------------------------------------------------------------------
 
+// constructor
 BasicFrame::BasicFrame( wxFrame * parent, const wxString& title,
-                        int xpos, int ypos, int width, int height )
-: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height) ){}
+                       int xpos, int ypos, int width, int height )
+: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height) )
+{
+}
+
+void BasicFrame::HideBasicFrame(wxCloseEvent &event)
+{
+    std::cout << "hiding child window";
+    Hide();
+}
+
+void BasicFrame::Import(std::string path){
+    csv2::Reader<csv2::delimiter<','>,
+    csv2::quote_character<'"'>,
+    csv2::first_row_is_header<true>,
+    csv2::trim_policy::trim_whitespace> csv;
+    if (csv.mmap(path)) {
+        const auto header = csv.header();
+        criterion_names.clear();
+        for (const auto cell: header) {
+            std::string header_value;
+            cell.read_value(header_value);
+            criterion_names.push_back(header_value);
+        }
+        size_t rows{0}, cells{0};
+        for (const auto row: csv) {
+            rows += 1;
+            for (const auto cell: row) {
+                cells += 1;
+            }
+        }
+        // Create a wxGrid object
+        auto grid = new wxGrid( this,
+                               -1,
+                               wxPoint( 0, 0 ),
+                               wxSize( 400, 300 ) );
+        grid->CreateGrid( int(rows), int(cells/rows) );
+        for (int i = 0; i < int(cells/rows); i++) {
+            grid->SetColLabelValue(i,criterion_names[i]);
+        }
+        wxBoxSizer *sizerMain=new wxBoxSizer(wxVERTICAL);
+        sizerMain->Add(grid, 1, wxALL|wxEXPAND, 0);
+        SetSizer(sizerMain);
+        sizerMain->SetSizeHints(this);
+        int y = 0;
+        for (const auto row: csv) {
+            int x = 0;
+            for (const auto cell: row) {
+                // Do something with cell value
+                std::string value;
+                
+                cell.read_value(value);
+                std::cout << value;
+                grid->SetCellValue(y, x, value);
+                x += 1;
+            }
+            y += 1;
+        }
+    }
+}
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame((wxFrame *) NULL, -1, title)
+: wxFrame((wxFrame *) NULL, -1, title)
 {
     
     rubric = new BasicFrame(this, "Rubric", 450, 50, 450, 300);
@@ -184,23 +279,31 @@ MyFrame::MyFrame(const wxString& title)
     
     // set the frame icon
     SetIcon(wxICON(sample));
-
+    
 #if wxUSE_MENUBAR
     // create a menu bar
     wxMenu *fileMenu = new wxMenu;
-
+    
+    wxMenu *rubricMenu = new wxMenu;
+    
     // the "About" item should be in the help menu
     wxMenu *helpMenu = new wxMenu;
     helpMenu->Append(Minimal_About, "&About\tF1", "Show about dialog");
-
+    
     fileMenu->Append(Minimal_Quit, "E&xit\tAlt-X", "Quit this program");
-    fileMenu->Append(Minimal_ImportCSV, "Import\tAlt-I", "Import CSV");
-
+    fileMenu->Append(Minimal_ImportCSV, "Open Scores\tAlt-O", "Open CSV");
+    fileMenu->Append(Minimal_SaveCSV, "Save Scores\tAlt-S", "Save CSV");
+    
+    rubricMenu->Append(Minimal_ShowRubric, "Show Rubric\tAlt-R");
+    rubricMenu->Append(Minimal_ImportRubric, "Import Rubric\tAlt-I");
+    
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
     menuBar->Append(helpMenu, "&Help");
-
+    menuBar->Append(rubricMenu, "&Rubric");
+    
+    
     // ... and attach this menu bar to the frame
     SetMenuBar(menuBar);
 #else // !wxUSE_MENUBAR
@@ -211,7 +314,7 @@ MyFrame::MyFrame(const wxString& title)
     sizer->Add(aboutBtn, wxSizerFlags().Center());
     SetSizer(sizer);
 #endif // wxUSE_MENUBAR/!wxUSE_MENUBAR
-
+    
 #if wxUSE_STATUSBAR
     // create a status bar just for fun (by default with 1 pane only)
     CreateStatusBar(2);
@@ -222,6 +325,15 @@ MyFrame::MyFrame(const wxString& title)
 
 // event handlers
 
+void MyFrame::ShowRubric(wxCommandEvent& WXUNUSED(event))
+{
+    rubric->Show(true);
+}
+
+void MyFrame::ImportRubric(wxCommandEvent& WXUNUSED(event))
+{
+    //    rubric->Import();
+}
 
 void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
@@ -233,18 +345,22 @@ void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox(wxString::Format
                  (
-                    "Welcome to %s!\n"
-                    "\n"
-                    "This is the minimal wxWidgets sample\n"
-                    "running under %s.",
-                    wxVERSION_STRING,
-                    wxGetOsDescription()
-                 ),
+                  "Welcome to %s!\n"
+                  "\n"
+                  "This is the minimal wxWidgets sample\n"
+                  "running under %s.",
+                  wxVERSION_STRING,
+                  wxGetOsDescription()
+                  ),
                  "About wxWidgets minimal sample",
                  wxOK | wxICON_INFORMATION,
                  this);
 }
 
+void BasicFrame::OnSelectCell(wxGridEvent& ev) {
+    ev.StopPropagation();
+    ev.Skip();
+}
 
 void MyFrame::OnSelectCell(wxGridEvent& ev) {
     wxString logBuf;
@@ -253,20 +369,34 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
     else
         logBuf << _T("Deselected ");
     logBuf << _T("cell at row ") << ev.GetRow()
-           << _T(" col ") << ev.GetCol()
-           << _T(" ( ControlDown: ")<< (ev.ControlDown() ? 'T':'F')
-           << _T(", ShiftDown: ")<< (ev.ShiftDown() ? 'T':'F')
-           << _T(", AltDown: ")<< (ev.AltDown() ? 'T':'F')
-           << _T(", MetaDown: ")<< (ev.MetaDown() ? 'T':'F') << _T(" )");
-
+    << _T(" col ") << ev.GetCol()
+    << _T(" ( ControlDown: ")<< (ev.ControlDown() ? 'T':'F')
+    << _T(", ShiftDown: ")<< (ev.ShiftDown() ? 'T':'F')
+    << _T(", AltDown: ")<< (ev.AltDown() ? 'T':'F')
+    << _T(", MetaDown: ")<< (ev.MetaDown() ? 'T':'F') << _T(" )");
+    
     //Indicate whether this column was moved
     if ( ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() ) != ev.GetCol() )
         logBuf << _T(" *** Column moved, current position: ") << ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() );
-
-    wxLogMessage( wxT("%s"), logBuf.c_str() );
-
-    if (rubric != NULL) {
-    rubric->SetTitle("Foo");
+    
+    //    wxLogMessage( wxT("%s"), logBuf.c_str() );
+    
+    
+    rubric->SetTitle(rubric_names[ev.GetCol()]);
+    
+    if (rubric_names[ev.GetCol()][0]=='#') {
+        std::cout<<"it's a rubric"<<std::endl;
+        
+        for(std::filesystem::path p : {filepath})
+            if (std::filesystem::exists(p.remove_filename().append(rubric_names[ev.GetCol()]+".csv"))) {
+                rubric->Import(std::string(p.remove_filename().append(rubric_names[ev.GetCol()]+".csv")));
+            } else {
+                std::cout<<"missing rubric"<<std::endl;
+            }
+        
+    } else {
+        rubric->DestroyChildren();
+        std::cout<<"it's not a rubric"<<std::endl;
     }
     // you must call Skip() if you want the default processing
     // to occur in wxGrid
@@ -276,77 +406,111 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
 void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
 
 {
-    std::cout << "import";
     wxFileDialog
-        openFileDialog(this, _("Open CSV file"), "", "",
-                       "CSV files (*.csv)|*.csv", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+    openFileDialog(this, _("Open CSV file"), "", "",
+                   "CSV files (*.csv)|*.csv", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
     if (openFileDialog.ShowModal() == wxID_CANCEL)
         return;     // the user changed idea...
     
-    std::cout << std::string(openFileDialog.GetPath());
+    
+    filepath = std::string(openFileDialog.GetPath());
+    for(std::filesystem::path p : {filepath})
+        this->SetTitle(std::string(p.filename()));
+    
     
     csv2::Reader<csv2::delimiter<','>,
     csv2::quote_character<'"'>,
     csv2::first_row_is_header<true>,
     csv2::trim_policy::trim_whitespace> csv;
     
-    if (csv.mmap(std::string(openFileDialog.GetPath()))) {
-       
-      const auto header = csv.header();
-
-      size_t rows{0}, cells{0};
-      for (const auto row: csv) {
-        rows += 1;
-        for (const auto cell: row) {
-          cells += 1;
-        }
-      }
-    
-    // Create a wxGrid object
-    auto grid = new wxGrid( this,
-                        -1,
-                        wxPoint( 0, 0 ),
-                        wxSize( 400, 300 ) );
+    if (csv.mmap(filepath)) {
         
-    grid->CreateGrid( int(rows), int(cells/rows) );
-    // We can set the sizes of individual rows and columns
-    // in pixels
-//    grid->SetRowSize( 0, 60 );
-//    grid->SetColSize( 0, 120 );
+        const auto header = csv.header();
+        rubric_names.clear();
+        for (const auto cell: header) {
+            std::string header_value;
+            cell.read_value(header_value);
+            rubric_names.push_back(header_value);
+        }
+        
+        size_t rows{0}, cells{0};
+        for (const auto row: csv) {
+            // check for empty line at eof
+            std::string value;
+            row.read_raw_value(value);
+            if (value.length()>0)
+            {
+                rows += 1;
+            }
+            for (const auto cell: row) {
+                cells += 1;
+            }
+        }
+        
+        // Create a wxGrid object
+        this->grid = new wxGrid( this,
+                                -1,
+                                wxPoint( 0, 0 ),
+                                wxSize( 400, 300 ) );
+        
+        grid->CreateGrid( int(rows), int(cells/rows) );
+        for (int i = 0; i < int(cells/rows); i++) {
+            grid->SetColLabelValue(i,rubric_names[i]);
+        }
+        wxBoxSizer *sizerMain=new wxBoxSizer(wxVERTICAL);
+        sizerMain->Add(grid, 1, wxALL|wxEXPAND, 0);
+        SetSizer(sizerMain);
+        sizerMain->SetSizeHints(this);
+        
         int y = 0;
         for (const auto row: csv) {
-          int x = 0;
-          for (const auto cell: row) {
-            // Do something with cell value
-            std::string value;
-            
-            cell.read_value(value);
-            std::cout << value;
-            grid->SetCellValue(y, x, value);
-            x += 1;
-          }
-          y += 1;
+            int x = 0;
+            for (const auto cell: row) {
+                // Do something with cell value
+                std::string value;
+                cell.read_value(value);
+                grid->SetCellValue(y, x, value);
+                x += 1;
+            }
+            y += 1;
         }
-//    // And set grid cell contents as strings
-//    grid->SetCellValue( 0, 0, "wxGrid is good" );
-//    // We can specify that some cells are read->only
-//    grid->SetCellValue( 0, 3, "This is read->only" );
-//    grid->SetReadOnly( 0, 3 );
-//    // Colours can be specified for grid cell contents
-//    grid->SetCellValue(3, 3, "green on grey");
-//    grid->SetCellTextColour(3, 3, *wxGREEN);
-//    grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
-//    // We can specify the some cells will store numeric
-//    // values rather than strings. Here we set grid column 5
-//    // to hold floating point values displayed with width of 6
-//    // and precision of 2
-//    grid->SetColFormatFloat(5, 6, 2);
-//    grid->SetCellValue(0, 6, "3.1415");
+        //    // And set grid cell contents as strings
+        //    grid->SetCellValue( 0, 0, "wxGrid is good" );
+        //    // We can specify that some cells are read->only
+        //    grid->SetCellValue( 0, 3, "This is read->only" );
+        //    grid->SetReadOnly( 0, 3 );
+        //    // Colours can be specified for grid cell contents
+        //    grid->SetCellValue(3, 3, "green on grey");
+        //    grid->SetCellTextColour(3, 3, *wxGREEN);
+        //    grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
+        //    // We can specify the some cells will store numeric
+        //    // values rather than strings. Here we set grid column 5
+        //    // to hold floating point values displayed with width of 6
+        //    // and precision of 2
+        //    grid->SetColFormatFloat(5, 6, 2);
+        //    grid->SetCellValue(0, 6, "3.1415");
         
     }
-    
 }
 
 
-
-
+void MyFrame::OnSaveCSV(wxCommandEvent& WXUNUSED(event))
+{
+    // iterate grid
+    int colCount = grid->GetNumberCols();
+    int rowCount = grid->GetNumberRows();
+    std::ofstream stream(filepath);
+    csv2::Writer<csv2::delimiter<','>> writer(stream);
+    std::vector<std::vector<std::string>> rows;
+    writer.write_row(rubric_names);
+    for (int y = 0; y < rowCount; y++) {
+        std::vector<std::string> row;
+        for (int x = 0; x < colCount; x++) {
+            auto value = std::string(grid->GetCellValue(y, x));
+            row.push_back(value);
+        }
+        writer.write_row(row);
+    }
+    stream.close();
+    
+}
