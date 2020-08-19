@@ -74,14 +74,15 @@ public:
                );
     
     wxFrame * p;
-    
-    std::vector<std::string> criterion_names;
+    std::string fp;
+    wxGrid * rubric_grid;
+    wxGridCellAutoWrapStringRenderer * wrap;
     
     // hide
     void HideBasicFrame(wxCloseEvent& event);
     void OnSelectCell(wxGridEvent& ev);
     void Import(std::string path);
-    
+    void OnCellChanged(wxGridEvent& ev);
     
     
 private:
@@ -102,7 +103,7 @@ public:
     std::string filepath;
     wxGrid * grid;
     
-    std::vector<std::string> rubric_names;
+    std::vector<std::string> scores_head;
     
     // event handlers (these functions should _not_ be virtual)
     void OnQuit(wxCommandEvent& event);
@@ -112,6 +113,10 @@ public:
     void ShowRubric(wxCommandEvent& event);
     void ImportRubric(wxCommandEvent& event);
     void OnSelectCell(wxGridEvent& ev);
+    void AddCol(wxCommandEvent& event);
+    void AddRow(wxCommandEvent& event);
+    void RubricAddCol(wxCommandEvent& event);
+    void RubricAddRow(wxCommandEvent& event);
     
     
 private:
@@ -137,7 +142,11 @@ enum
     Minimal_ImportCSV = wxID_OPEN,
     Minimal_SaveCSV = wxID_SAVE,
     Minimal_ShowRubric = wxID_FILE1,
-    Minimal_ImportRubric = wxID_FILE2
+    Minimal_ImportRubric = wxID_FILE2,
+    Minimal_AddCol = wxID_FILE3,
+    Minimal_AddRow = wxID_FILE4,
+    Minimal_RubricAddCol = wxID_FILE5,
+    Minimal_RubricAddRow = wxID_FILE6
 };
 
 // ----------------------------------------------------------------------------
@@ -154,12 +163,20 @@ EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
 EVT_MENU(Minimal_SaveCSV, MyFrame::OnSaveCSV)
 EVT_MENU(Minimal_ShowRubric, MyFrame::ShowRubric)
 EVT_MENU(Minimal_ImportRubric, MyFrame::ImportRubric)
+EVT_MENU(Minimal_AddCol, MyFrame::AddCol)
+EVT_MENU(Minimal_AddRow, MyFrame::AddRow)
+EVT_MENU(Minimal_RubricAddCol, MyFrame::RubricAddCol)
+EVT_MENU(Minimal_RubricAddRow, MyFrame::RubricAddRow)
+
+
 EVT_GRID_SELECT_CELL(MyFrame::OnSelectCell)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(BasicFrame, wxFrame)
 EVT_CLOSE(BasicFrame::HideBasicFrame)
 EVT_GRID_SELECT_CELL(BasicFrame::OnSelectCell)
+EVT_GRID_CELL_CHANGED(BasicFrame::OnCellChanged)
+
 wxEND_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
@@ -211,6 +228,8 @@ BasicFrame::BasicFrame( wxFrame * parent, const wxString& title,
                        int xpos, int ypos, int width, int height )
 : wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height) )
 {
+    rubric_grid = nullptr;
+    wrap = new wxGridCellAutoWrapStringRenderer();
 }
 
 void BasicFrame::HideBasicFrame(wxCloseEvent &event)
@@ -220,36 +239,60 @@ void BasicFrame::HideBasicFrame(wxCloseEvent &event)
 }
 
 void BasicFrame::Import(std::string path){
+    fp = path;
+    
     csv2::Reader<csv2::delimiter<','>,
     csv2::quote_character<'"'>,
     csv2::first_row_is_header<true>,
     csv2::trim_policy::trim_whitespace> csv;
     if (csv.mmap(path)) {
         const auto header = csv.header();
-        criterion_names.clear();
+        std::vector<std::string> head;
         for (const auto cell: header) {
             std::string header_value;
             cell.read_value(header_value);
-            criterion_names.push_back(header_value);
+            head.push_back(header_value);
         }
         size_t rows{0}, cells{0};
+        
         for (const auto row: csv) {
-            rows += 1;
+            // check for empty line at eof
+            std::string value;
+            row.read_raw_value(value);
+            if (value.length()>0)
+            {
+                rows += 1;
+            }
             for (const auto cell: row) {
                 cells += 1;
             }
         }
         // Create a wxGrid object
-        auto grid = new wxGrid( this,
-                               -1,
-                               wxPoint( 0, 0 ),
-                               wxSize( 400, 300 ) );
-        grid->CreateGrid( int(rows), int(cells/rows) );
+        if (rubric_grid != nullptr)
+        {
+            delete rubric_grid; rubric_grid = nullptr;
+        };
+        
+        if (wrap != nullptr) {
+            delete wrap; wrap = nullptr;
+        }
+        
+        wrap = new wxGridCellAutoWrapStringRenderer();
+        
+        rubric_grid = new wxGrid( this,
+                                 -1,
+                                 wxPoint( 0, 0 ),
+                                 wxSize( 400, 300 ) );
+        rubric_grid->CreateGrid( int(rows), int(cells/rows) );
+        rubric_grid->SetDefaultColSize(400);
+        rubric_grid->SetDefaultRowSize(100);
+        rubric_grid->SetDefaultRenderer(wrap);
+        
         for (int i = 0; i < int(cells/rows); i++) {
-            grid->SetColLabelValue(i,criterion_names[i]);
+            rubric_grid->SetColLabelValue(i,head[i]);
         }
         wxBoxSizer *sizerMain=new wxBoxSizer(wxVERTICAL);
-        sizerMain->Add(grid, 1, wxALL|wxEXPAND, 0);
+        sizerMain->Add(rubric_grid, 1, wxALL|wxEXPAND, 0);
         SetSizer(sizerMain);
         sizerMain->SetSizeHints(this);
         int y = 0;
@@ -261,7 +304,7 @@ void BasicFrame::Import(std::string path){
                 
                 cell.read_value(value);
                 std::cout << value;
-                grid->SetCellValue(y, x, value);
+                rubric_grid->SetCellValue(y, x, value);
                 x += 1;
             }
             y += 1;
@@ -276,6 +319,7 @@ MyFrame::MyFrame(const wxString& title)
     
     rubric = new BasicFrame(this, "Rubric", 450, 50, 450, 300);
     rubric->Show(true);
+    grid = nullptr;
     
     // set the frame icon
     SetIcon(wxICON(sample));
@@ -286,6 +330,8 @@ MyFrame::MyFrame(const wxString& title)
     
     wxMenu *rubricMenu = new wxMenu;
     
+    wxMenu *scoresMenu = new wxMenu;
+    
     // the "About" item should be in the help menu
     wxMenu *helpMenu = new wxMenu;
     helpMenu->Append(Minimal_About, "&About\tF1", "Show about dialog");
@@ -294,14 +340,21 @@ MyFrame::MyFrame(const wxString& title)
     fileMenu->Append(Minimal_ImportCSV, "Open Scores\tAlt-O", "Open CSV");
     fileMenu->Append(Minimal_SaveCSV, "Save Scores\tAlt-S", "Save CSV");
     
-    rubricMenu->Append(Minimal_ShowRubric, "Show Rubric\tAlt-R");
+    scoresMenu->Append(Minimal_AddCol, "Add Column\tAlt-C");
+    scoresMenu->Append(Minimal_AddRow, "Add Row\tAlt-R");
+    
+    rubricMenu->Append(Minimal_ShowRubric, "Show Rubric\tAlt-Shit-H");
     rubricMenu->Append(Minimal_ImportRubric, "Import Rubric\tAlt-I");
+    rubricMenu->Append(Minimal_RubricAddCol, "Add Column\tAlt-Shift-C");
+    rubricMenu->Append(Minimal_RubricAddRow, "Add Row\tAlt-Shift-R");
     
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
     menuBar->Append(helpMenu, "&Help");
+    menuBar->Append(scoresMenu, "&Scores");
     menuBar->Append(rubricMenu, "&Rubric");
+    
     
     
     // ... and attach this menu bar to the frame
@@ -321,6 +374,34 @@ MyFrame::MyFrame(const wxString& title)
     SetStatusText("Welcome to Feedback!");
 #endif // wxUSE_STATUSBAR
     
+}
+void BasicFrame::OnCellChanged(wxGridEvent &ev) {
+    // iterate grid
+    int colCount = rubric_grid->GetNumberCols();
+    int rowCount = rubric_grid->GetNumberRows();
+    std::ofstream stream(fp);
+    csv2::Writer<csv2::delimiter<','>> writer(stream);
+    std::vector<std::vector<std::string>> rows;
+    // use column labels to generate new csv header
+    
+    std::vector<std::string> head;
+    for (int i = 0; i < colCount;i++) {
+        head.push_back(std::string(rubric_grid->GetColLabelValue(i)));
+    }
+    writer.write_row(head);
+    for (int y = 0; y < rowCount; y++) {
+        std::vector<std::string> row;
+        for (int x = 0; x < colCount; x++) {
+            auto value = std::string(rubric_grid->GetCellValue(y, x));
+            if (value.length()>0) {
+                row.push_back(value);
+            } else {
+                row.push_back(" ");
+            }
+        }
+        writer.write_row(row);
+    }
+    stream.close();
 }
 
 // event handlers
@@ -362,41 +443,65 @@ void BasicFrame::OnSelectCell(wxGridEvent& ev) {
     ev.Skip();
 }
 
-void MyFrame::OnSelectCell(wxGridEvent& ev) {
-    wxString logBuf;
-    if ( ev.Selecting() )
-        logBuf << _T("Selected ");
-    else
-        logBuf << _T("Deselected ");
-    logBuf << _T("cell at row ") << ev.GetRow()
-    << _T(" col ") << ev.GetCol()
-    << _T(" ( ControlDown: ")<< (ev.ControlDown() ? 'T':'F')
-    << _T(", ShiftDown: ")<< (ev.ShiftDown() ? 'T':'F')
-    << _T(", AltDown: ")<< (ev.AltDown() ? 'T':'F')
-    << _T(", MetaDown: ")<< (ev.MetaDown() ? 'T':'F') << _T(" )");
+void MyFrame::RubricAddCol(wxCommandEvent& event) {
+
     
-    //Indicate whether this column was moved
-    if ( ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() ) != ev.GetCol() )
-        logBuf << _T(" *** Column moved, current position: ") << ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() );
+    rubric->rubric_grid->AppendCols(1, true);
+
+}
+
+void MyFrame::RubricAddRow(wxCommandEvent& event) {
+    rubric->rubric_grid->AppendRows(1, true);
+}
+
+void MyFrame::OnSelectCell(wxGridEvent& ev) {
+    rubric->DestroyChildren();
+    rubric->rubric_grid = nullptr;
+    rubric->wrap = nullptr;
+    std::cout<<grid->GetCellValue(ev.GetRow(), ev.GetCol())<<std::endl;
+    wxString logBuf;
+    //    if ( ev.Selecting() )
+    //        logBuf << _T("Selected ");
+    //    else
+    //        logBuf << _T("Deselected ");
+    //    logBuf << _T("cell at row ") << ev.GetRow()
+    //    << _T(" col ") << ev.GetCol()
+    //    << _T(" ( ControlDown: ")<< (ev.ControlDown() ? 'T':'F')
+    //    << _T(", ShiftDown: ")<< (ev.ShiftDown() ? 'T':'F')
+    //    << _T(", AltDown: ")<< (ev.AltDown() ? 'T':'F')
+    //    << _T(", MetaDown: ")<< (ev.MetaDown() ? 'T':'F') << _T(" )");
+    //
+    //    //Indicate whether this column was moved
+    //    if ( ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() ) != ev.GetCol() )
+    //        logBuf << _T(" *** Column moved, current position: ") << ((wxGrid *)ev.GetEventObject())->GetColPos( ev.GetCol() );
     
     //    wxLogMessage( wxT("%s"), logBuf.c_str() );
     
     
-    rubric->SetTitle(rubric_names[ev.GetCol()]);
+    rubric->SetTitle(scores_head[ev.GetCol()]);
     
-    if (rubric_names[ev.GetCol()][0]=='#') {
+    if (scores_head[ev.GetCol()][0]=='#') {
         std::cout<<"it's a rubric"<<std::endl;
         
         for(std::filesystem::path p : {filepath})
-            if (std::filesystem::exists(p.remove_filename().append(rubric_names[ev.GetCol()]+".csv"))) {
-                rubric->Import(std::string(p.remove_filename().append(rubric_names[ev.GetCol()]+".csv")));
+            if (std::filesystem::exists(p.remove_filename().append(scores_head[ev.GetCol()]+".csv"))) {
+                rubric->Import(std::string(p.remove_filename().append(scores_head[ev.GetCol()]+".csv")));
             } else {
                 std::cout<<"missing rubric"<<std::endl;
+                logBuf << _T( "No Rubric found for ") << scores_head[ev.GetCol()] << _T(". Generating default...");
+                wxLogMessage( wxT("%s"), logBuf.c_str() );
+                std::ofstream stream(std::string(p.remove_filename().append(scores_head[ev.GetCol()]+".csv")));
+                csv2::Writer<csv2::delimiter<','>> writer(stream);
+                // @
+                std::string new_header = scores_head[ev.GetCol()];
+                new_header[0] = '@';
+                writer.write_row(std::vector<std::string> {new_header});
+                writer.write_row(std::vector<std::string> {"default text"});
+                stream.close();
+                
+                rubric->Import(std::string(p.remove_filename().append(scores_head[ev.GetCol()]+".csv")));
             }
         
-    } else {
-        rubric->DestroyChildren();
-        std::cout<<"it's not a rubric"<<std::endl;
     }
     // you must call Skip() if you want the default processing
     // to occur in wxGrid
@@ -426,11 +531,11 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
     if (csv.mmap(filepath)) {
         
         const auto header = csv.header();
-        rubric_names.clear();
+        scores_head.clear();
         for (const auto cell: header) {
             std::string header_value;
             cell.read_value(header_value);
-            rubric_names.push_back(header_value);
+            scores_head.push_back(header_value);
         }
         
         size_t rows{0}, cells{0};
@@ -448,14 +553,18 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
         }
         
         // Create a wxGrid object
-        this->grid = new wxGrid( this,
-                                -1,
-                                wxPoint( 0, 0 ),
-                                wxSize( 400, 300 ) );
+        if (grid != nullptr) {
+            delete grid; grid = nullptr;
+        }
+        grid = new wxGrid( this,
+                          -1,
+                          wxPoint( 0, 0 ),
+                          wxSize( 400, 300 ) );
         
         grid->CreateGrid( int(rows), int(cells/rows) );
+        grid->EnableDragColMove();
         for (int i = 0; i < int(cells/rows); i++) {
-            grid->SetColLabelValue(i,rubric_names[i]);
+            grid->SetColLabelValue(i,scores_head[i]);
         }
         wxBoxSizer *sizerMain=new wxBoxSizer(wxVERTICAL);
         sizerMain->Add(grid, 1, wxALL|wxEXPAND, 0);
@@ -493,24 +602,43 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
     }
 }
 
+void MyFrame::AddCol(wxCommandEvent& event) {
+    std::string value = std::string(wxGetTextFromUser("hi"));
+        grid->AppendCols(1, true);
+        grid->SetColLabelValue(grid->GetNumberCols()-1, value);
+    scores_head.push_back(value);
+}
+
+void MyFrame::AddRow(wxCommandEvent& event) {
+    grid->AppendRows(1, true);
+}
 
 void MyFrame::OnSaveCSV(wxCommandEvent& WXUNUSED(event))
 {
     // iterate grid
+    grid->ResetColPos();
     int colCount = grid->GetNumberCols();
     int rowCount = grid->GetNumberRows();
     std::ofstream stream(filepath);
     csv2::Writer<csv2::delimiter<','>> writer(stream);
     std::vector<std::vector<std::string>> rows;
-    writer.write_row(rubric_names);
+    std::vector<std::string> head;
+    for (int i = 0; i < colCount;i++) {
+        head.push_back(std::string(grid->GetColLabelValue(i)));
+    }
+    writer.write_row(head);
     for (int y = 0; y < rowCount; y++) {
         std::vector<std::string> row;
         for (int x = 0; x < colCount; x++) {
             auto value = std::string(grid->GetCellValue(y, x));
-            row.push_back(value);
+            if (value.length()>0) {
+                row.push_back(value);
+            } else {
+                row.push_back(" ");
+            }
         }
         writer.write_row(row);
+        
     }
     stream.close();
-    
 }
