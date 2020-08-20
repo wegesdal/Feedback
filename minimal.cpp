@@ -60,7 +60,7 @@ public:
     virtual bool OnInit() wxOVERRIDE;
 };
 
-class MyFrame;
+class MainFrame;
 
 class BasicFrame : public wxFrame
 {
@@ -92,11 +92,16 @@ private:
 
 
 // Define a new frame type: this is going to be our main frame
-class MyFrame : public wxFrame
+class MainFrame : public wxFrame
 {
 public:
     // ctor(s)
-    MyFrame(const wxString& title);
+    MainFrame(const wxString& title,
+              int xpos,
+              int ypos,
+              int width,
+              int height
+              );
     
     BasicFrame * rubric;
     
@@ -110,13 +115,13 @@ public:
     void OnAbout(wxCommandEvent& event);
     void OnImportCSV(wxCommandEvent& event);
     void OnSaveCSV(wxCommandEvent& event);
-    void ShowRubric(wxCommandEvent& event);
-    void ImportRubric(wxCommandEvent& event);
     void OnSelectCell(wxGridEvent& ev);
     void AddCol(wxCommandEvent& event);
     void AddRow(wxCommandEvent& event);
     void RubricAddCol(wxCommandEvent& event);
     void RubricAddRow(wxCommandEvent& event);
+    void DelCol(wxCommandEvent& event);
+    void RubricDelCol(wxCommandEvent& event);
     
     
 private:
@@ -133,20 +138,21 @@ private:
 enum
 {
     // menu items
-    Minimal_Quit = wxID_EXIT,
+    e_quit = wxID_EXIT,
     
     // it is important for the id corresponding to the "About" command to have
     // this standard value as otherwise it won't be handled properly under Mac
     // (where it is special and put into the "Apple" menu)
-    Minimal_About = wxID_ABOUT,
-    Minimal_ImportCSV = wxID_OPEN,
-    Minimal_SaveCSV = wxID_SAVE,
-    Minimal_ShowRubric = wxID_FILE1,
-    Minimal_ImportRubric = wxID_FILE2,
-    Minimal_AddCol = wxID_FILE3,
-    Minimal_AddRow = wxID_FILE4,
-    Minimal_RubricAddCol = wxID_FILE5,
-    Minimal_RubricAddRow = wxID_FILE6
+    e_about = wxID_ABOUT,
+    e_open = wxID_OPEN,
+    e_save = wxID_SAVE,
+    e_delcol = wxID_FILE1,
+    e_rubricdelcol = wxID_FILE2,
+    e_addcol = wxID_FILE3,
+    e_addrow = wxID_FILE4,
+    e_rubricaddcol = wxID_FILE5,
+    e_rubricaddrow = wxID_FILE6
+    
 };
 
 // ----------------------------------------------------------------------------
@@ -156,20 +162,20 @@ enum
 // the event tables connect the wxWidgets events with the functions (event
 // handlers) which process them. It can be also done at run-time, but for the
 // simple menu events like this the static method is much simpler.
-wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_MENU(Minimal_Quit,  MyFrame::OnQuit)
-EVT_MENU(Minimal_About, MyFrame::OnAbout)
-EVT_MENU(Minimal_ImportCSV, MyFrame::OnImportCSV)
-EVT_MENU(Minimal_SaveCSV, MyFrame::OnSaveCSV)
-EVT_MENU(Minimal_ShowRubric, MyFrame::ShowRubric)
-EVT_MENU(Minimal_ImportRubric, MyFrame::ImportRubric)
-EVT_MENU(Minimal_AddCol, MyFrame::AddCol)
-EVT_MENU(Minimal_AddRow, MyFrame::AddRow)
-EVT_MENU(Minimal_RubricAddCol, MyFrame::RubricAddCol)
-EVT_MENU(Minimal_RubricAddRow, MyFrame::RubricAddRow)
+wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
+EVT_MENU(e_quit,  MainFrame::OnQuit)
+EVT_MENU(e_about, MainFrame::OnAbout)
+EVT_MENU(e_open, MainFrame::OnImportCSV)
+EVT_MENU(e_save, MainFrame::OnSaveCSV)
+EVT_MENU(e_addcol, MainFrame::AddCol)
+EVT_MENU(e_addrow, MainFrame::AddRow)
+EVT_MENU(e_delcol, MainFrame::DelCol)
+EVT_MENU(e_rubricdelcol, MainFrame::RubricDelCol)
+EVT_MENU(e_rubricaddcol, MainFrame::RubricAddCol)
+EVT_MENU(e_rubricaddrow, MainFrame::RubricAddRow)
 
 
-EVT_GRID_SELECT_CELL(MyFrame::OnSelectCell)
+EVT_GRID_SELECT_CELL(MainFrame::OnSelectCell)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(BasicFrame, wxFrame)
@@ -204,7 +210,8 @@ bool MyApp::OnInit()
         return false;
     
     // create the main application window
-    MyFrame * main = new MyFrame("Scores");
+    MainFrame * main = new MainFrame("Scores", 0, 0, 600, 600);
+    
     
     // and show it (the frames, unlike simple controls, are not shown when
     // created initially)
@@ -226,7 +233,7 @@ bool MyApp::OnInit()
 // constructor
 BasicFrame::BasicFrame( wxFrame * parent, const wxString& title,
                        int xpos, int ypos, int width, int height )
-: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height), wxFRAME_EX_METAL)
+: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height), wxFRAME_FLOAT_ON_PARENT | wxRESIZE_BORDER | wxMINIMIZE_BOX)
 {
     rubric_grid = nullptr;
     wrap = new wxGridCellAutoWrapStringRenderer();
@@ -282,7 +289,7 @@ void BasicFrame::Import(std::string path){
         rubric_grid = new wxGrid( this,
                                  -1,
                                  wxPoint( 0, 0 ),
-                                 wxSize( 484, 484 ) );
+                                 wxSize( 484, 322 ) );
         rubric_grid->CreateGrid( int(rows), int(cells/rows) );
         rubric_grid->SetDefaultColSize(400);
         rubric_grid->SetDefaultRowSize(100);
@@ -313,11 +320,12 @@ void BasicFrame::Import(std::string path){
 }
 
 // frame constructor
-MyFrame::MyFrame(const wxString& title)
-: wxFrame((wxFrame *) NULL, -1, title)
+MainFrame::MainFrame(const wxString& title, int xpos, int ypos, int width, int height)
+: wxFrame((wxFrame *) NULL, -1, title, wxPoint(xpos, ypos), wxSize(width, height), wxDEFAULT_FRAME_STYLE)
+
 {
-    
-    rubric = new BasicFrame(this, "Rubric", 450, 50, 450, 300);
+    Centre();
+    rubric = new BasicFrame(this, "Rubric", 785, 22, 424, 400);
     rubric->Show(false);
     grid = nullptr;
     
@@ -334,19 +342,19 @@ MyFrame::MyFrame(const wxString& title)
     
     // the "About" item should be in the help menu
     wxMenu *helpMenu = new wxMenu;
-    helpMenu->Append(Minimal_About, "&About\tF1", "Show about dialog");
+    helpMenu->Append(e_about, "&About\tF1", "Show about dialog");
     
-    fileMenu->Append(Minimal_Quit, "E&xit\tAlt-X", "Quit this program");
-    fileMenu->Append(Minimal_ImportCSV, "Open Scores\tAlt-O", "Open CSV");
-    fileMenu->Append(Minimal_SaveCSV, "Save Scores\tAlt-S", "Save CSV");
+    fileMenu->Append(e_quit, "E&xit\tAlt-X", "Quit this program");
+    fileMenu->Append(e_open, "Open Scores\tAlt-O", "Open CSV");
+    fileMenu->Append(e_save, "Save Scores\tAlt-S", "Save CSV");
     
-    scoresMenu->Append(Minimal_AddCol, "Add Column\tAlt-C");
-    scoresMenu->Append(Minimal_AddRow, "Add Row\tAlt-R");
+    scoresMenu->Append(e_addcol, "Add Column\tAlt-C");
+    scoresMenu->Append(e_addrow, "Add Row\tAlt-R");
+    scoresMenu->Append(e_delcol, "Delete Columns\tAlt-D");
     
-    rubricMenu->Append(Minimal_ShowRubric, "Show Rubric\tAlt-Shit-H");
-    rubricMenu->Append(Minimal_ImportRubric, "Import Rubric\tAlt-I");
-    rubricMenu->Append(Minimal_RubricAddCol, "Add Column\tAlt-Shift-C");
-    rubricMenu->Append(Minimal_RubricAddRow, "Add Row\tAlt-Shift-R");
+    rubricMenu->Append(e_rubricaddcol, "Add Column\tAlt-Shift-C");
+    rubricMenu->Append(e_rubricaddrow, "Add Row\tAlt-Shift-R");
+    rubricMenu->Append(e_rubricdelcol, "Delete Columns\tAlt-Shift-D");
     
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
@@ -406,23 +414,13 @@ void BasicFrame::OnCellChanged(wxGridEvent &ev) {
 
 // event handlers
 
-void MyFrame::ShowRubric(wxCommandEvent& WXUNUSED(event))
-{
-    rubric->Show(true);
-}
-
-void MyFrame::ImportRubric(wxCommandEvent& WXUNUSED(event))
-{
-    //    rubric->Import();
-}
-
-void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
     // true is to force the frame to close
     Close(true);
 }
 
-void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox(wxString::Format
                  (
@@ -443,18 +441,7 @@ void BasicFrame::OnSelectCell(wxGridEvent& ev) {
     ev.Skip();
 }
 
-void MyFrame::RubricAddCol(wxCommandEvent& event) {
-
-    
-    rubric->rubric_grid->AppendCols(1, true);
-
-}
-
-void MyFrame::RubricAddRow(wxCommandEvent& event) {
-    rubric->rubric_grid->AppendRows(1, true);
-}
-
-void MyFrame::OnSelectCell(wxGridEvent& ev) {
+void MainFrame::OnSelectCell(wxGridEvent& ev) {
     rubric->DestroyChildren();
     rubric->rubric_grid = nullptr;
     rubric->wrap = nullptr;
@@ -481,7 +468,6 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
     rubric->SetTitle(scores_head[ev.GetCol()]);
     
     if (scores_head[ev.GetCol()][0]=='#') {
-        rubric->Show(true);
         std::cout<<"it's a rubric"<<std::endl;
         
         for(std::filesystem::path p : {filepath})
@@ -502,19 +488,17 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
                 
                 rubric->Import(std::string(p.remove_filename().append(scores_head[ev.GetCol()]+".csv")));
             }
-        rubric->Raise();
-        
-    } else {
-        rubric->Show(false);
     }
     // you must call Skip() if you want the default processing
     // to occur in wxGrid
     ev.Skip();
 }
 
-void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
 
 {
+    auto origin = GetClientAreaOrigin();
+    this->SetPosition(wxPoint(origin.x, origin.y+22));
     wxFileDialog
     openFileDialog(this, _("Open CSV file"), "", "",
                    "CSV files (*.csv)|*.csv", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
@@ -525,7 +509,6 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
     filepath = std::string(openFileDialog.GetPath());
     for(std::filesystem::path p : {filepath})
         this->SetTitle(std::string(p.filename()));
-    
     
     csv2::Reader<csv2::delimiter<','>,
     csv2::quote_character<'"'>,
@@ -563,10 +546,9 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
         grid = new wxGrid( this,
                           -1,
                           wxPoint( 0, 0 ),
-                          wxSize( 400, 300 ) );
+                          wxSize( 600, 400 ) );
         
         grid->CreateGrid( int(rows), int(cells/rows) );
-        grid->EnableDragColMove();
         for (int i = 0; i < int(cells/rows); i++) {
             grid->SetColLabelValue(i,scores_head[i]);
         }
@@ -587,6 +569,7 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
             }
             y += 1;
         }
+        rubric->Show(true);
         //    // And set grid cell contents as strings
         //    grid->SetCellValue( 0, 0, "wxGrid is good" );
         //    // We can specify that some cells are read->only
@@ -606,18 +589,57 @@ void MyFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void MyFrame::AddCol(wxCommandEvent& event) {
-    std::string value = std::string(wxGetTextFromUser("hi"));
+void MainFrame::AddCol(wxCommandEvent& event) {
+    std::string value = std::string(wxGetTextFromUser("Enter new symbol or rubric title. eg: @example OR #example"));
+    // TODO: CHECK IF SYMBOL UNIQUE
+    // validate input
+    if (value[0] == '@' || value[0] == '#') {
         grid->AppendCols(1, true);
         grid->SetColLabelValue(grid->GetNumberCols()-1, value);
-    scores_head.push_back(value);
+        scores_head.push_back(value);
+    } else {
+        //dialog prompt
+    }
 }
 
-void MyFrame::AddRow(wxCommandEvent& event) {
+void MainFrame::DelCol(wxCommandEvent& event) {
+    if (grid != nullptr) {
+        if (grid->GetSelectedCols().size() > 0) {
+            grid->DeleteCols(grid->GetSelectedCols()[0], int(grid->GetSelectedCols().size()));
+        }
+    }
+}
+
+void MainFrame::AddRow(wxCommandEvent& WXUNUSED(event)) {
     grid->AppendRows(1, true);
 }
 
-void MyFrame::OnSaveCSV(wxCommandEvent& WXUNUSED(event))
+void MainFrame::RubricAddCol(wxCommandEvent& event) {
+    std::string value = std::string(wxGetTextFromUser("Enter new symbol. eg: @example"));
+    // TODO: CHECK IF SYMBOL UNIQUE
+    
+    // validate input
+    if (value[0] == '@') {
+        rubric->rubric_grid->AppendCols(1, true);
+        rubric->rubric_grid->SetColLabelValue(rubric->rubric_grid->GetNumberCols()-1, value);
+    } else {
+        // dialog prompt
+    }
+}
+
+void MainFrame::RubricDelCol(wxCommandEvent& event) {
+    if (rubric->rubric_grid != nullptr) {
+        if (rubric->rubric_grid->GetSelectedCols().size() > 0) {
+            rubric->rubric_grid->DeleteCols(rubric->rubric_grid->GetSelectedCols()[0], int(rubric->rubric_grid->GetSelectedCols().size()));
+        }
+    }
+}
+
+void MainFrame::RubricAddRow(wxCommandEvent& WXUNUSED(event)) {
+    rubric->rubric_grid->AppendRows(1, true);
+}
+
+void MainFrame::OnSaveCSV(wxCommandEvent& WXUNUSED(event))
 {
     // iterate grid
     grid->ResetColPos();
