@@ -204,12 +204,12 @@ bool MyApp::OnInit()
         return false;
     
     // create the main application window
-    MyFrame *main = new MyFrame("Scores");
-    
+    MyFrame * main = new MyFrame("Scores");
     
     // and show it (the frames, unlike simple controls, are not shown when
     // created initially)
     main->Show(true);
+    
     
     SetTopWindow(main);
     
@@ -226,7 +226,7 @@ bool MyApp::OnInit()
 // constructor
 BasicFrame::BasicFrame( wxFrame * parent, const wxString& title,
                        int xpos, int ypos, int width, int height )
-: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height) )
+: wxFrame( parent, -1, title, wxPoint(xpos, ypos), wxSize(width, height), wxFRAME_EX_METAL)
 {
     rubric_grid = nullptr;
     wrap = new wxGridCellAutoWrapStringRenderer();
@@ -282,7 +282,7 @@ void BasicFrame::Import(std::string path){
         rubric_grid = new wxGrid( this,
                                  -1,
                                  wxPoint( 0, 0 ),
-                                 wxSize( 400, 300 ) );
+                                 wxSize( 484, 484 ) );
         rubric_grid->CreateGrid( int(rows), int(cells/rows) );
         rubric_grid->SetDefaultColSize(400);
         rubric_grid->SetDefaultRowSize(100);
@@ -318,7 +318,7 @@ MyFrame::MyFrame(const wxString& title)
 {
     
     rubric = new BasicFrame(this, "Rubric", 450, 50, 450, 300);
-    rubric->Show(true);
+    rubric->Show(false);
     grid = nullptr;
     
     // set the frame icon
@@ -481,6 +481,7 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
     rubric->SetTitle(scores_head[ev.GetCol()]);
     
     if (scores_head[ev.GetCol()][0]=='#') {
+        rubric->Show(true);
         std::cout<<"it's a rubric"<<std::endl;
         
         for(std::filesystem::path p : {filepath})
@@ -501,7 +502,10 @@ void MyFrame::OnSelectCell(wxGridEvent& ev) {
                 
                 rubric->Import(std::string(p.remove_filename().append(scores_head[ev.GetCol()]+".csv")));
             }
+        rubric->Raise();
         
+    } else {
+        rubric->Show(false);
     }
     // you must call Skip() if you want the default processing
     // to occur in wxGrid
