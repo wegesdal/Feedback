@@ -43,6 +43,10 @@
 
 #include "wx/grid.h"
 
+#include <map>
+#include <vector>
+#include <string>
+
 // ----------------------------------------------------------------------------
 // private classes
 // ----------------------------------------------------------------------------
@@ -73,7 +77,6 @@ public:
                int height
                );
     
-    wxFrame * p;
     std::string fp;
     wxGrid * rubric_grid;
     wxGridCellAutoWrapStringRenderer * wrap;
@@ -104,6 +107,12 @@ public:
               );
     
     BasicFrame * rubric;
+    BasicFrame * template_frame;
+    BasicFrame * preview_frame;
+    wxTextCtrl * control;
+    wxTextCtrl * preview;
+    
+    std::map<std::string, std::vector<std::string>> symbol_map_vector;
     
     std::string filepath;
     wxGrid * grid;
@@ -122,6 +131,11 @@ public:
     void RubricAddRow(wxCommandEvent& event);
     void DelCol(wxCommandEvent& event);
     void RubricDelCol(wxCommandEvent& event);
+    void SetupTemplateFrame();
+    void SetupPreviewFrame();
+    void UpdatePreviewFrame();
+    void OnTextChanged(wxCommandEvent& event);
+    void ParseHeaders();
     
     
 private:
@@ -152,7 +166,6 @@ enum
     e_addrow = wxID_FILE4,
     e_rubricaddcol = wxID_FILE5,
     e_rubricaddrow = wxID_FILE6
-    
 };
 
 // ----------------------------------------------------------------------------
@@ -173,15 +186,15 @@ EVT_MENU(e_delcol, MainFrame::DelCol)
 EVT_MENU(e_rubricdelcol, MainFrame::RubricDelCol)
 EVT_MENU(e_rubricaddcol, MainFrame::RubricAddCol)
 EVT_MENU(e_rubricaddrow, MainFrame::RubricAddRow)
-
-
 EVT_GRID_SELECT_CELL(MainFrame::OnSelectCell)
+EVT_TEXT(69, MainFrame::OnTextChanged)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(BasicFrame, wxFrame)
 EVT_CLOSE(BasicFrame::HideBasicFrame)
 EVT_GRID_SELECT_CELL(BasicFrame::OnSelectCell)
 EVT_GRID_CELL_CHANGED(BasicFrame::OnCellChanged)
+
 
 wxEND_EVENT_TABLE()
 
@@ -326,7 +339,12 @@ MainFrame::MainFrame(const wxString& title, int xpos, int ypos, int width, int h
 {
     Centre();
     rubric = new BasicFrame(this, "Rubric", 785, 22, 424, 400);
-    rubric->Show(false);
+    
+    template_frame = new BasicFrame(this, "Template", 785, 422, 424, 400);
+    preview_frame = new BasicFrame(this, "Preview", 785, 822, 424, 400);
+    SetupTemplateFrame();
+    SetupPreviewFrame();
+    
     grid = nullptr;
     
     // set the frame icon
@@ -335,9 +353,7 @@ MainFrame::MainFrame(const wxString& title, int xpos, int ypos, int width, int h
 #if wxUSE_MENUBAR
     // create a menu bar
     wxMenu *fileMenu = new wxMenu;
-    
     wxMenu *rubricMenu = new wxMenu;
-    
     wxMenu *scoresMenu = new wxMenu;
     
     // the "About" item should be in the help menu
@@ -410,6 +426,41 @@ void BasicFrame::OnCellChanged(wxGridEvent &ev) {
         writer.write_row(row);
     }
     stream.close();
+}
+
+void MainFrame::OnTextChanged(wxCommandEvent& event) {
+    ParseHeaders();
+    UpdatePreviewFrame();
+}
+
+void MainFrame::ParseHeaders() {
+    for (auto h : scores_head) {
+        if (h[0] == '@') {
+            // load column into symbol_map_vector
+            // need to deal with uppercase (make all lower?)
+            std::cout << h << std::endl;
+        } else if (h[0] == '#'){
+            // parse rubric and load symbols into symbol_map_vector
+            
+        }
+    }
+}
+
+void MainFrame::SetupTemplateFrame() {
+    control = new wxTextCtrl(template_frame, 69, "@Name's favorite color is @color.", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_BESTWRAP);
+//    std::ostream stream(control);
+//    stream << "";
+//    stream.flush();
+}
+
+void MainFrame::SetupPreviewFrame() {
+    preview = new wxTextCtrl(preview_frame, -1, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_BESTWRAP);
+    preview->SetEditable(false);
+}
+
+void MainFrame::UpdatePreviewFrame() {
+    // TODO: parse headers and find/replace according to grid data
+    preview->ChangeValue(control->GetValue());
 }
 
 // event handlers
@@ -492,6 +543,7 @@ void MainFrame::OnSelectCell(wxGridEvent& ev) {
     // you must call Skip() if you want the default processing
     // to occur in wxGrid
     ev.Skip();
+    UpdatePreviewFrame();
 }
 
 void MainFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
@@ -570,6 +622,8 @@ void MainFrame::OnImportCSV(wxCommandEvent& WXUNUSED(event))
             y += 1;
         }
         rubric->Show(true);
+        template_frame->Show(true);
+        preview_frame->Show(true);
         //    // And set grid cell contents as strings
         //    grid->SetCellValue( 0, 0, "wxGrid is good" );
         //    // We can specify that some cells are read->only
